@@ -1,0 +1,2 @@
+isic_id,attribution,copyright_license,benign_malignant,concomitant_biopsy,dermoscopic_type,diagnosis,diagnosis_confirm_type,image_type,lesion_id,mel_class,melanocytic
+ISIC_1435135,"""Repeated dermoscopic images of melanocytic lesions"" by University Hospital Basel / CC-BY-NC",CC-BY-NC,,,,,,,IL_4402356,,
