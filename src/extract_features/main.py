@@ -3,6 +3,8 @@ import numpy
 
 from geometry_features import GeometryFeatures
 from texture_features import TextureFeatures
+from color_features import ColorFeatures
+
 class Features():
 
     def __init__(self, img ,binary_mask):
@@ -18,5 +20,6 @@ class Features():
         texture_features = TextureFeatures(self.img_gray).get_texture_features()
         return texture_features
         
-    def color_features():
-        pass
+    def color_features(self):
+        color_features = ColorFeatures(self.img).get_color_features
+        return color_features

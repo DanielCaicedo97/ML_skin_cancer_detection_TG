@@ -2,12 +2,13 @@ import cv2
 from segmentation.main import Segmentation
 from pre_procesing.main import PreProcessing
 from extract_features.texture_features import TextureFeatures
-
+from extract_features.geometry_features import GeometryFeatures
+from extract_features.color_features import ColorFeatures
 
 if __name__ == "__main__":
 
     #PreProcesssing
-    img_path = 'data_example/raw/ISIC_1435135.JPG'  # Ruta de tu imagen
+    img_path = 'src/data_example/raw/ISIC_1435135.JPG'  # Ruta de tu imagen
     img = cv2.imread(img_path)
     preprocessor = PreProcessing(img_path)
     processed_img = preprocessor.pipeline_preprocessing()
@@ -32,8 +33,12 @@ if __name__ == "__main__":
 
 
     texture_features = TextureFeatures(kmeans_segmented_img).get_texture_features()
+    geometry_features = GeometryFeatures(otsu_segmented_img)._hu_moments()
+    color_features = ColorFeatures(processed_img).get_color_features()
 
     print(texture_features)
+    print(geometry_features)
+    print(color_features)
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()
