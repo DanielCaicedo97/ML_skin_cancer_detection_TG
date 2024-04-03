@@ -8,7 +8,7 @@ class PreProcessing():
     def pipeline_preprocessing(self):
         self.img = self._resize(self.img)
         self.img = self._gauss_filter(self.img)
-        # self.img = self._sharpen_filter(self.img)
+        self.img = self._sharpen_filter(self.img)
         return self.img
 
     def _gauss_filter(self, img):

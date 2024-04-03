@@ -11,12 +11,22 @@ class GeometryFeatures():
     # geometry features asymetry, elipse and border 
 
     def get_geometry_features(self) -> dict:
-        asymmetry = self._symmetry()
+        symmetry = self._symmetry()
         compactness_index = self._compactness_index()
         fractal_dimension = self._fractal_dimension()
         hu_moments = self._hu_moments()
+                # Organizar los momentos de Hu en un diccionario
+        hu_dict = {}
+        for i in range(7):
+            hu_dict[f'hu_{i+1}'] = hu_moments[i][0]
          # Combinar todos los diccionarios en uno solo
-        geometry_features_dict = {**asymmetry, **compactness_index, **fractal_dimension, **hu_moments}
+        geometry_features_dict = {
+            'symmetry_Horizontal': symmetry[0],
+            'symmetry_vertical': symmetry[1],
+            'compactness_index': compactness_index,
+            'fractal_dimension': fractal_dimension,
+            **hu_dict
+        }
         return geometry_features_dict
 
     def _symmetry(self):
@@ -64,25 +74,18 @@ class GeometryFeatures():
     def _compactness_index(self):
         # Encontrar contornos en la máscara binaria
         contours, _ = cv2.findContours(self.binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
         # Si no se detectan contornos, devolver None
         if len(contours) == 0:
             return None
-
         # Obtener el contorno más grande
         contour = max(contours, key=cv2.contourArea)
-
         # Calcular el perímetro y el área del contorno
         perimeter = cv2.arcLength(contour, True)
-        print(perimeter)
         area = cv2.contourArea(contour)
-        print(area)
-
         # Calcular el índice de compacidad
         compactness_index = (perimeter ** 2) / (4 *np.pi* area)
 
         return compactness_index
-
 
     def _fractal_dimension(self):
         # Calcular el contorno de la máscara binaria
@@ -93,12 +96,12 @@ class GeometryFeatures():
         contour_image = np.zeros_like(self.binary_mask)
         # Dibujar el contorno en la imagen vacía
         cv2.drawContours(contour_image, [contour], -1, (255, 255, 255), thickness=1)
-
+        cv2.imshow('contorno',contour_image)
         # Calcular la dimensión fractal utilizando poreSpy
         # Generar una serie de datos de 2 a 20
         bins = np.arange(2, 51)    
         data = ps.metrics.boxcount(contour_image,bins=bins)
-        # Suponiendo que data.size y data.count son arreglos numpy
+        # ajuste de datos en escala logaritmica
         x = np.log(data.size)
         y = np.log(data.count)
         # Agregar una constante a x para ajustar una línea recta con intercepto en el origen
@@ -106,7 +109,6 @@ class GeometryFeatures():
 
         # Ajustar el modelo de regresión lineal
         model = sm.OLS(y, x_with_const)
-
         # Ajustar el modelo a los datos
         results = model.fit()
         # Obtener los coeficientes (pendiente e intercepto)
@@ -141,27 +143,16 @@ class GeometryFeatures():
         ax2.plot(data.size, data.slope, '-o')
         plt.show()
 
-
-
-
     def _hu_moments(self):
         # Encontrar contornos en la máscara binaria
         contours, _ = cv2.findContours(self.binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
         # Si no se detectan contornos, devolver None
         if len(contours) == 0:
             return None
-
         # Obtener el contorno más grande
         contour = max(contours, key=cv2.contourArea)
-
         # Calcular momentos de Hu del contorno
         moments = cv2.moments(contour)
         hu_moments = cv2.HuMoments(moments)
 
-        # Organizar los momentos de Hu en un diccionario
-        hu_dict = {}
-        for i in range(7):
-            hu_dict[f'hu_{i+1}'] = hu_moments[i][0]
-
-        return hu_dict
+        return hu_moments

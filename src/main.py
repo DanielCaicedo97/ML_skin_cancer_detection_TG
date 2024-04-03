@@ -31,9 +31,8 @@ if __name__ == "__main__":
     cv2.imshow('Otsu Segmentation', otsu_segmented_img)
     cv2.imshow('K-Means Segmentation', kmeans_segmented_img)
 
-
     texture_features = TextureFeatures(kmeans_segmented_img).get_texture_features()
-    geometry_features = GeometryFeatures(otsu_segmented_img)._hu_moments()
+    geometry_features = GeometryFeatures(otsu_segmented_img).get_geometry_features()
     color_features = ColorFeatures(processed_img).get_color_features()
 
     print(texture_features)

@@ -9,6 +9,8 @@ class Segmentation():
     def method_otsu(self):
         # Aplicar el método de Otsu para la segmentación
         _, segmented_img = cv2.threshold(self.img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        # Invertir la máscara
+        segmented_img = cv2.bitwise_not(segmented_img)
         return segmented_img
 
     def k_means_segmentation(self, k=2):
