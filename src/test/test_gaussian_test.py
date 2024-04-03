@@ -4,6 +4,7 @@ from src.data_procesing.gaussian_test_data import GaussianTest
 
 @pytest.fixture
 def sample_data():
+    np.random.seed(42)  # Establecer la semilla para reproducibilidad
     return np.random.normal(loc=0, scale=1, size=1000)  # Datos de ejemplo
 
 def test_lilliefors(sample_data):

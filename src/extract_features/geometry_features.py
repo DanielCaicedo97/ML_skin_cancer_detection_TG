@@ -1,6 +1,8 @@
 import cv2 
 import numpy  as np
-
+import porespy as ps
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
 
 class GeometryFeatures():
     def __init__(self, binary_mask):
@@ -40,7 +42,6 @@ class GeometryFeatures():
         translation_matrix =  np.float32([[1, 0, center_diff[0]], [0, 1, center_diff[1]]])
          # Llevamos a cabo la transformación.
         shifted = cv2.warpAffine(rotated_img, translation_matrix, (rotated_img.shape[1], rotated_img.shape[0]))
-        
         # Realizar flip horizontal y vertical respecto al centro de la imagen
         flip_horizontal = cv2.flip(shifted, 1)
         flip_vertical = cv2.flip(shifted, 0)
@@ -57,7 +58,7 @@ class GeometryFeatures():
         # Calcular la simetría horizontal y vertical
         horizontal_symmetry = area_intersection_horizontal / total_area
         vertical_symmetry = area_intersection_vertical / total_area
-        print(horizontal_symmetry,vertical_symmetry)
+        
         return np.array([horizontal_symmetry, vertical_symmetry])
 
     def _compactness_index(self):
@@ -84,7 +85,63 @@ class GeometryFeatures():
 
 
     def _fractal_dimension(self):
-        pass
+        # Calcular el contorno de la máscara binaria
+        contours, _ = cv2.findContours(self.binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Obtener el contorno más grande
+        contour = max(contours, key=cv2.contourArea)
+        # Crear una imagen vacía del mismo tamaño que la imagen original
+        contour_image = np.zeros_like(self.binary_mask)
+        # Dibujar el contorno en la imagen vacía
+        cv2.drawContours(contour_image, [contour], -1, (255, 255, 255), thickness=1)
+
+        # Calcular la dimensión fractal utilizando poreSpy
+        # Generar una serie de datos de 2 a 20
+        bins = np.arange(2, 51)    
+        data = ps.metrics.boxcount(contour_image,bins=bins)
+        # Suponiendo que data.size y data.count son arreglos numpy
+        x = np.log(data.size)
+        y = np.log(data.count)
+        # Agregar una constante a x para ajustar una línea recta con intercepto en el origen
+        x_with_const = sm.add_constant(x)
+
+        # Ajustar el modelo de regresión lineal
+        model = sm.OLS(y, x_with_const)
+
+        # Ajustar el modelo a los datos
+        results = model.fit()
+        # Obtener los coeficientes (pendiente e intercepto)
+        slope = results.params[1]
+
+        return np.abs(slope)
+    
+    def fractal_dimension_graphic(self):
+         # Calcular el contorno de la máscara binaria
+        contours, _ = cv2.findContours(self.binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Obtener el contorno más grande
+        contour = max(contours, key=cv2.contourArea)
+        # Crear una imagen vacía del mismo tamaño que la imagen original
+        contour_image = np.zeros_like(self.binary_mask)
+        # Dibujar el contorno en la imagen vacía
+        cv2.drawContours(contour_image, [contour], -1, (255, 255, 255), thickness=1)
+
+        # Calcular la dimensión fractal utilizando poreSpy
+        # Generar una serie de datos de 2 a 20
+        bins = np.arange(2, 51)    
+        data = ps.metrics.boxcount(contour_image,bins=bins)
+        # Graficar los resultados
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
+        ax1.set_yscale('log')
+        ax1.set_xscale('log')
+        ax1.set_xlabel('Tamaño del borde de la caja')
+        ax1.set_ylabel('Número de cajas que abarcan fases')
+        ax2.set_xlabel('Tamaño del borde de la caja')
+        ax2.set_ylabel('Pendiente')
+        ax2.set_xscale('log')
+        ax1.plot(data.size, data.count, '-o')
+        ax2.plot(data.size, data.slope, '-o')
+        plt.show()
+
+
 
 
     def _hu_moments(self):

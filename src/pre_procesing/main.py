@@ -8,17 +8,18 @@ class PreProcessing():
     def pipeline_preprocessing(self):
         self.img = self._resize(self.img)
         self.img = self._gauss_filter(self.img)
-        self.img = self._sharpen_filter(self.img)
+        # self.img = self._sharpen_filter(self.img)
         return self.img
 
     def _gauss_filter(self, img):
         # Aplicar un filtro gaussiano
-        img_gaussian = cv2.GaussianBlur(img, (3, 3), 0)
+        img_gaussian = cv2.GaussianBlur(img, (9,9), 0)
         return img_gaussian
 
-    def _sharpen_filter(self, img):
+    def _sharpen_filter(self, img , alfa=0.5):
         # Aplicar un filtro de enfoque (sharpening)
-        kernel_sharpening = np.array([[-1,0,-1], [0, 5,0],[-1,0,-1]])
+
+        kernel_sharpening = np.array([[-alfa,alfa-1,-alfa], [alfa-1, alfa + 5,alfa-1],[-alfa,alfa-1,-alfa]])*(1/(alfa+1))
         img_sharpened = cv2.filter2D(img, -1, kernel_sharpening)
         return img_sharpened
 
