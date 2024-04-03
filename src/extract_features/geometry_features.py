@@ -15,6 +15,7 @@ class GeometryFeatures():
         compactness_index = self._compactness_index()
         fractal_dimension = self._fractal_dimension()
         hu_moments = self._hu_moments()
+        radial_variance = self._radial_variance()
                 # Organizar los momentos de Hu en un diccionario
         hu_dict = {}
         for i in range(7):
@@ -25,10 +26,11 @@ class GeometryFeatures():
             'symmetry_vertical': symmetry[1],
             'compactness_index': compactness_index,
             'fractal_dimension': fractal_dimension,
+            'radial_variance': radial_variance,
             **hu_dict
         }
         return geometry_features_dict
-
+    
     def _symmetry(self):
         # Calcular el contorno de la máscara binaria
         contours, _ = cv2.findContours(self.binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -86,6 +88,50 @@ class GeometryFeatures():
         compactness_index = (perimeter ** 2) / (4 *np.pi* area)
 
         return compactness_index
+
+    def _radial_variance(self):
+        # Calcular el contorno de la máscara binaria
+        contours, _ = cv2.findContours(self.binary_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Obtener el contorno más grande
+        contour = max(contours, key=cv2.contourArea)
+
+        # Ajustar una elipse al contorno
+        ellipse = cv2.fitEllipse(contour)
+        # Obtener los parámetros de la elipse
+        center, axes, angle = ellipse
+
+        # Rotar la imagen original para que el eje principal se posicione a 90°
+        rotation_matrix = cv2.getRotationMatrix2D(center, angle - 180, 1.0)
+        rotated_img = cv2.warpAffine(self.binary_mask, rotation_matrix, self.binary_mask.shape[1::-1], flags=cv2.INTER_LINEAR)
+
+        # Calcular la diferencia entre el centro de la imagen y el centro de la elipse
+        image_center = (self.binary_mask.shape[1] // 2, self.binary_mask.shape[0] // 2)
+        center_diff = (image_center[0] - center[0], image_center[1] - center[1])
+
+        translation_matrix =  np.float32([[1, 0, center_diff[0]], [0, 1, center_diff[1]]])
+         # Llevamos a cabo la transformación.
+        shifted = cv2.warpAffine(rotated_img, translation_matrix, (rotated_img.shape[1], rotated_img.shape[0]))
+
+        # Calcular el contorno de la máscara binaria
+        contours, _ = cv2.findContours(shifted, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # Obtener el contorno más grande
+        contour = max(contours, key=cv2.contourArea)
+        # Crear una imagen vacía del mismo tamaño que la imagen original
+        contour_image = np.zeros_like(shifted)
+        # Dibujar el contorno en la imagen vacía
+        cv2.drawContours(contour_image, [contour], -1, (255, 255, 255), thickness=1)
+
+            # Calcular las distancias euclidianas entre cada punto del contorno y el centro de gravedad
+        distances = [np.linalg.norm(point - image_center) for point in contour.squeeze()]
+
+        # Calcular la media de las distancias euclidianas
+        mean_distance = np.mean(distances)
+        # Calcular la varianza radial
+        perimeter = cv2.arcLength(contour, True)
+        radial_variance = np.sum([(distance - mean_distance)**2 for distance in distances]) / (mean_distance**2 * perimeter)
+
+        return radial_variance
 
     def _fractal_dimension(self):
         # Calcular el contorno de la máscara binaria

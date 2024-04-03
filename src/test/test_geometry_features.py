@@ -18,7 +18,15 @@ def binary_image_square():
     return image
 
 @pytest.fixture
-def binary_ellipse_image():
+def binary_image_Circle():
+    # Crear una imagen binaria de ejemplo
+    image = np.zeros((512, 512), dtype=np.uint8)
+    cv2.circle(image, (256, 256), 200, 255, -1)  # Círculo en el centro
+    return image
+
+
+@pytest.fixture
+def binary_image_elipse():
     # Crear una imagen binaria de 512x512 con una elipse descentrada
     image = np.zeros((512, 512), dtype=np.uint8)
     center_coordinates = (300, 300)
@@ -38,9 +46,9 @@ def test_compactness_index_square(binary_image_square):
     compactness_index = gf._compactness_index()
     assert compactness_index == expected_compactness_index
 
-def test_symmetry(binary_ellipse_image):
+def test_symmetry(binary_image_elipse):
     # Calcular la simetría de la imagen binaria del círculo
-    gf = GeometryFeatures(binary_ellipse_image)
+    gf = GeometryFeatures(binary_image_elipse)
     symmetry_values = gf._symmetry()
     
     # Comprobar que los valores de simetría están en el rango [0, 1]
@@ -58,9 +66,20 @@ def test_fractal_dimension_square(binary_image_square):
     # La dimensión fractal de una imagen completamente negra (sin píxeles blancos) es 0
     assert fractal_dim == pytest.approx(1.0, abs=5e-2)  # Permitimos un pequeño margen de error
 
-def test_fractal_dimension_elipse(binary_ellipse_image):
+def test_fractal_dimension_elipse(binary_image_elipse):
     # Calcular la dimensión fractal de la imagen binaria
-    gf = GeometryFeatures(binary_ellipse_image)
+    gf = GeometryFeatures(binary_image_elipse)
     fractal_dim = gf._fractal_dimension()
     # La dimensión fractal de una imagen completamente negra (sin píxeles blancos) es 0
     assert fractal_dim == pytest.approx(1.0, abs=5e-2)  # Permitimos un pequeño margen de error
+
+
+def test_radial_variance(binary_image_Circle):
+    # Crear una instancia de la clase GeometryFeatures con la imagen binaria de prueba
+    geometry_features = GeometryFeatures(binary_image_Circle)
+    
+    # Calcular la varianza radial
+    radial_variance = geometry_features._radial_variance()
+    
+    # Comprobar que la varianza radial es un número no negativo
+    assert radial_variance == pytest.approx(0, abs=1e-2)

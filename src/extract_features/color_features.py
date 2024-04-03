@@ -47,7 +47,7 @@ class ColorFeatures():
         variance_b = cv2.meanStdDev(b)[1][0]**2
 
         # Retornar los valores de RGB
-        return variance_r, variance_g, variance_b
+        return variance_r[0], variance_g[0], variance_b[0]
 
     def _std_deviation_rgb(self):
         # Organizar los canales RGB
@@ -59,4 +59,4 @@ class ColorFeatures():
         std_dev_b = cv2.meanStdDev(b)[1][0]
 
         # Retornar los valores de RGB
-        return std_dev_r, std_dev_g, std_dev_b
+        return std_dev_r[0], std_dev_g[0], std_dev_b[0]
