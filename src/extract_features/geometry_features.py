@@ -96,7 +96,6 @@ class GeometryFeatures():
         contour_image = np.zeros_like(self.binary_mask)
         # Dibujar el contorno en la imagen vacía
         cv2.drawContours(contour_image, [contour], -1, (255, 255, 255), thickness=1)
-        cv2.imshow('contorno',contour_image)
         # Calcular la dimensión fractal utilizando poreSpy
         # Generar una serie de datos de 2 a 20
         bins = np.arange(2, 51)    
@@ -125,11 +124,13 @@ class GeometryFeatures():
         contour_image = np.zeros_like(self.binary_mask)
         # Dibujar el contorno en la imagen vacía
         cv2.drawContours(contour_image, [contour], -1, (255, 255, 255), thickness=1)
-
         # Calcular la dimensión fractal utilizando poreSpy
         # Generar una serie de datos de 2 a 20
         bins = np.arange(2, 51)    
         data = ps.metrics.boxcount(contour_image,bins=bins)
+        # ajuste de datos en escala logaritmica
+        x = np.log(data.size)
+        y = np.log(data.count)
         # Graficar los resultados
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
         ax1.set_yscale('log')
@@ -140,7 +141,7 @@ class GeometryFeatures():
         ax2.set_ylabel('Pendiente')
         ax2.set_xscale('log')
         ax1.plot(data.size, data.count, '-o')
-        ax2.plot(data.size, data.slope, '-o')
+        ax2.plot(x, y, '-o')
         plt.show()
 
     def _hu_moments(self):

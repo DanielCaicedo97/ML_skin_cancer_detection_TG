@@ -25,6 +25,7 @@ def test_anderson_darling(sample_data):
 
 @pytest.fixture
 def non_normal_data():
+    np.random.seed(42)
     return np.random.rand(1000)  # Generar datos aleatorios no gaussianos
 
 def test_lilliefors_non_normal(non_normal_data):

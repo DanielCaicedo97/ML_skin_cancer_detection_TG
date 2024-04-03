@@ -31,13 +31,15 @@ if __name__ == "__main__":
     cv2.imshow('Otsu Segmentation', otsu_segmented_img)
     cv2.imshow('K-Means Segmentation', kmeans_segmented_img)
 
-    texture_features = TextureFeatures(kmeans_segmented_img).get_texture_features()
-    geometry_features = GeometryFeatures(otsu_segmented_img).get_geometry_features()
-    color_features = ColorFeatures(processed_img).get_color_features()
+    texture_features = TextureFeatures(kmeans_segmented_img)
+    geometry_features = GeometryFeatures(otsu_segmented_img)
+    color_features = ColorFeatures(processed_img)
 
-    print(texture_features)
-    print(geometry_features)
-    print(color_features)
+    print(texture_features.get_texture_features())
+    print(geometry_features.get_geometry_features())
+    print(color_features.get_color_features())
+
+    geometry_features.fractal_dimension_graphic()
 
     cv2.waitKey(0)
     cv2.destroyAllWindows()

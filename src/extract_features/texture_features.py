@@ -8,19 +8,10 @@ class TextureFeatures():
         self.img_gray = img_gray
 
     def get_texture_features(self) -> dict:
-        haralick_features = self._haralick_Textures()
-        texture_features_dict  = {**haralick_features}
-        return texture_features_dict
-
-    def _haralick_Textures(self):
-        # Convertir la imagen a escala de grises
-        gray_img = self.img_gray
-
-        # Calcular las texturas de Haralick
-        textures = mahotas.features.haralick(gray_img.astype(np.uint8))
-
+        textures = self._haralick_Textures()
+        
         # Crear un diccionario con las características de Haralick
-        haralick_textures = {
+        haralick_features = {
             'Contrast': textures[..., 1].mean(),
             'Correlation': textures[..., 2].mean(),
             'Energy': textures[..., 4].mean(),
@@ -31,4 +22,13 @@ class TextureFeatures():
             'Entropy': textures[..., 12].mean()
         }
 
-        return haralick_textures
+        texture_features_dict  = {**haralick_features}
+        return texture_features_dict
+
+    def _haralick_Textures(self):
+        # Convertir la imagen a escala de grises
+        gray_img = self.img_gray
+
+        # Calcular las texturas de Haralick
+        textures = mahotas.features.haralick(gray_img.astype(np.uint8))
+        return textures
