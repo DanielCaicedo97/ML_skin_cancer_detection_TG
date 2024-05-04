@@ -2,3 +2,5 @@
 __pycache__/
 .pytest_cache
 logs.log
+src/images/*
+src/masks/*

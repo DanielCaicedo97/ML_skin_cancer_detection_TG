@@ -9,9 +9,14 @@ class PreProcessing():
 
     def pipeline_preprocessing(self):
         self.img = self._resize(self.img, 512)
-        self.img = self._apply_hair_removing(self.img)
+        threshold = self._apply_black_hat(self.img)
+        self.img = self._apply_inpainting(self.img,threshold)
         self.img = self._gauss_filter(self.img)
         self.img = self._sharpen_filter(self.img)
+        return self.img
+    
+    def pipeline_masks(self):
+        self.img = self._resize(self.img,512)
         return self.img
 
     def _gauss_filter(self, img):
@@ -38,29 +43,32 @@ class PreProcessing():
             ndarray: Imagen redimensionada.
         """
     # Convertir la imagen de OpenCV a formato Pillow (RGB)
-        img_pillow = PIL.Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        img_pillow = PIL.Image.fromarray(img)
 
         # Redimensionar la imagen manteniendo la relación de aspecto usando Pillow
         img_resized_pillow = PIL.ImageOps.fit(img_pillow,(max_dimension, max_dimension))
 
         # Convertir la imagen de Pillow a formato OpenCV (BGR)
         img_resized = np.array(img_resized_pillow, dtype=np.uint8)
-        img_resized = cv2.cvtColor(img_resized, cv2.COLOR_RGB2BGR)
 
         return img_resized
 
 
     
-    def _apply_hair_removing(self, img_rgb):
+    def _apply_black_hat(self, img_rgb):
         img_gray = cv2.cvtColor(img_rgb,cv2.COLOR_RGB2GRAY)
         # Kernel for the morphological filtering
         kernel = cv2.getStructuringElement(1,(17,17))
-    
         # Perform the blackHat filtering on the grayscale image to find the hair countours
         blackhat = cv2.morphologyEx(img_gray, cv2.MORPH_BLACKHAT, kernel)
         _,threshold = cv2.threshold(blackhat,10,255,cv2.THRESH_BINARY)
+
+        return threshold
+    
+    def _apply_inpainting(self, img_rgb, threshold):
         final_image = cv2.inpaint(img_rgb,threshold,1,cv2.INPAINT_TELEA)
         return final_image
+
 
 # # Ejemplo de uso
 # img_path = 'tu_imagen.jpg'  # Ruta de tu imagen
